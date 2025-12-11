@@ -1,6 +1,7 @@
 package com.kevinthegreat.organizableplayscreens.gui;
 
 import net.minecraft.client.gui.screen.world.WorldListWidget;
+import net.minecraft.client.gui.widget.TextWidget;
 
 import java.util.List;
 import java.util.SortedMap;
@@ -27,7 +28,7 @@ public interface WorldListWidgetAccessor {
 
     default boolean organizableplayscreens_isRootFolder() {return false;}
 
-    default String organizableplayscreens_getCurrentPath() {return null;}
+    default void organizableplayscreens_setPathWidget(TextWidget pathWidget) {}
 
     /**
      * Sets {@link com.kevinthegreat.organizableplayscreens.mixin.WorldListWidgetMixin#organizableplayscreens_currentFolder currentFolder} and updates the displayed entries.
@@ -50,11 +51,4 @@ public interface WorldListWidgetAccessor {
      * @param j the index of the entry to swap with
      */
     default void organizableplayscreens_swapEntries(int i, int j) {}
-
-    /**
-     * Updates the path of {@link com.kevinthegreat.organizableplayscreens.mixin.WorldListWidgetMixin#organizableplayscreens_currentFolder currentFolder}.
-     *
-     * @see com.kevinthegreat.organizableplayscreens.mixin.WorldListWidgetMixin#organizableplayscreens_currentPath currentPath
-     */
-    default void organizableplayscreens_updateCurrentPath() {}
 }

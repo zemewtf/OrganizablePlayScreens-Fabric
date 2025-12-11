@@ -3,7 +3,7 @@
   "id": "organizableplayscreens",
   "version": "${version}",
 
-  "name": "Organizable Play Screens",
+  "name": "Folders!",
   "description": "Organize your worlds and servers with folders in the play screens.",
   "authors": [
     "Kevinthegreat"
@@ -38,8 +38,8 @@
   },
 
   "depends": {
-    "fabricloader": ">=0.16",
-    "minecraft": ">=1.21.2",
+    "fabricloader": ">=0.17",
+    "minecraft": ">=1.21.9",
     "java": ">=21"
   }
 }

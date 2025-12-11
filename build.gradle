@@ -1,7 +1,7 @@
 plugins {
-	id 'fabric-loom' version '1.8-SNAPSHOT'
+	id 'fabric-loom' version '1.13-SNAPSHOT'
 	id 'maven-publish'
-	id "me.modmuss50.mod-publish-plugin" version "0.7.4"
+	id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 version = project.mod_version + '+' + project.minecraft_version
@@ -12,8 +12,8 @@ base {
 }
 
 repositories {
-	maven { url "https://maven.terraformersmc.com/releases/" }
-    maven { url "https://repo.essential.gg/repository/maven-public/" }
+	maven { url = "https://maven.terraformersmc.com/releases/" }
+    maven { url = "https://repo.essential.gg/repository/maven-public/" }
 }
 
 loom {
@@ -27,10 +27,30 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 
-	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modCompileOnly "gg.essential:essential-${project.essential_minecraft_version}-fabric:${project.essential_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modLocalRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+    productionRuntimeMods "com.terraformersmc:modmenu:${project.modmenu_version}"
+	modCompileOnly "gg.essential:essential-${project.essential_minecraft_version}-fabric:${project.essential_version}"
+}
+
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "${project.name}-test"
+		enableGameTests = false
+		enableClientGameTests = true
+		eula = true
+	}
+}
+
+tasks.register("runProductionClientGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    jvmArgs.addAll([
+            "-Dfabric.client.gametest",
+            "-Dfabric.client.gametest.disableNetworkSynchronizer=true"
+    ])
+    useXVFB = true
 }
 
 processResources {
@@ -94,8 +114,8 @@ publishMods {
 		projectSlug = "organizable-play-screens" // Required for discord webhook
 		accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
 		minecraftVersionRange {
-			start = "1.21.4"
-			end = "1.21.4"
+			start = "1.21.9"
+			end = "1.21.10"
 		}
 		requires("fabric-api")
 	}
@@ -103,8 +123,8 @@ publishMods {
 		projectId = "zKrZtg3n"
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
 		minecraftVersionRange {
-			start = "1.21.4"
-			end = "1.21.4"
+			start = "1.21.9"
+			end = "1.21.10"
 		}
 	}
 	github {

@@ -1,12 +1,21 @@
 package com.kevinthegreat.organizableplayscreens.gui;
 
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerServerListWidget;
 import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public interface AbstractFolderEntry<T extends AlwaysSelectedEntryListWidget<E>, E extends AlwaysSelectedEntryListWidget.Entry<E>> extends AbstractEntry<T, E> {
+    /**
+     * Gets all entries contained in this folder.
+     */
+    List<Identifier> getIcons();
+
     /**
      * Gets the button that moves the selected entry into this folder.
      *
@@ -29,11 +38,11 @@ public interface AbstractFolderEntry<T extends AlwaysSelectedEntryListWidget<E>,
      */
     @Override
     default void updateButtonStates(E selectedEntry) {
-        getButtonMoveInto().active = selectedEntry != null && selectedEntry != this;
+        getButtonMoveInto().active = selectedEntry != null && !(selectedEntry instanceof MultiplayerServerListWidget.ScanningEntry) && selectedEntry != this;
     }
 
     @Override
     default void render(DrawContext context, int index, int y, int x, int mouseX, int mouseY, boolean hovered, float tickDelta, String name, int listSize) {
-        AbstractEntry.renderFolderEntry(context, index, y, x, mouseX, mouseY, hovered, tickDelta, name, listSize, getButtonMoveInto());
+        AbstractEntry.renderFolderEntry(context, index, y, x, mouseX, mouseY, hovered, tickDelta, name, listSize, getIcons(), getButtonMoveInto());
     }
 }

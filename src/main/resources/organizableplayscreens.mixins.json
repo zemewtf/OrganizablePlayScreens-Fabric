@@ -9,17 +9,21 @@
     "client": [
         "MultiplayerScreenMixin",
         "MultiplayerServerListWidgetMixin",
-        "MultiplayerServerListWidgetMixin$ServerEntryInvoker",
+        "MultiplayerServerListWidgetMixin$ServerEntryAccessor",
         "SelectWorldScreenMixin",
         "ServerEntryMixin",
         "WorldListWidgetMixin",
         "WorldListWidgetMixin$WorldEntryAccessor",
         "accessor.EntryListWidgetInvoker",
         "accessor.MultiplayerScreenAccessor",
+        "accessor.MultiplayerServerListWidgetAccessor",
         "accessor.SelectWorldScreenAccessor",
         "accessor.SimpleOptionAccessor"
     ],
     "injectors": {
         "defaultRequire": 1
+    },
+    "mixinextras": {
+        "minVersion": "0.5.0"
     }
 }

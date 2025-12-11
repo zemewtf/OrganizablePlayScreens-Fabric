@@ -7,6 +7,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.*;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
@@ -114,14 +115,13 @@ public abstract class AbstractEditEntryScreen<T extends AlwaysSelectedEntryListW
     /**
      * Handles key presses for the screen. Saves and closes the screen if the done button is active, the name text field is not focused, and {@link GLFW#GLFW_KEY_ENTER} or {@link GLFW#GLFW_KEY_KP_ENTER} is pressed.
      *
-     * @param keyCode the key code of the key that was pressed
      * @return whether the key press has been consumed or not (prevents further processing or not)
      * @see #saveAndClose()
      */
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!buttonDone.active || getFocused() != nameField || keyCode != GLFW.GLFW_KEY_ENTER && keyCode != GLFW.GLFW_KEY_KP_ENTER) {
-            return super.keyPressed(keyCode, scanCode, modifiers);
+    public boolean keyPressed(KeyInput input) {
+        if (!buttonDone.active || getFocused() != nameField || input.key() != GLFW.GLFW_KEY_ENTER && input.key() != GLFW.GLFW_KEY_KP_ENTER) {
+            return super.keyPressed(input);
         } else {
             saveAndClose();
             return true;
@@ -176,8 +176,8 @@ public abstract class AbstractEditEntryScreen<T extends AlwaysSelectedEntryListW
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(textRenderer, typeTitle, width / 2, 20, 0xffffff);
-        context.drawTextWithShadow(textRenderer, typeEnterName, width / 2 - 100, 80, 0xa0a0a0);
+        context.drawCenteredTextWithShadow(textRenderer, typeTitle, width / 2, 20, 0xFFFFFFFF);
+        context.drawTextWithShadow(textRenderer, typeEnterName, width / 2 - 100, 80, 0xFFA0A0A0);
         nameField.render(context, mouseX, mouseY, delta);
     }
 }

@@ -6,14 +6,18 @@ import com.kevinthegreat.organizableplayscreens.compatibility.Compatibility;
 import com.kevinthegreat.organizableplayscreens.gui.AbstractMultiplayerEntry;
 import com.kevinthegreat.organizableplayscreens.gui.MultiplayerFolderEntry;
 import com.kevinthegreat.organizableplayscreens.gui.MultiplayerServerListWidgetAccessor;
+import com.kevinthegreat.organizableplayscreens.mixin.accessor.MultiplayerScreenAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerServerListWidget;
+import net.minecraft.client.gui.screen.world.WorldIcon;
 import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget;
+import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +25,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -70,12 +75,11 @@ public abstract class MultiplayerServerListWidgetMixin extends AlwaysSelectedEnt
     @NotNull
     private MultiplayerFolderEntry organizableplayscreens_currentFolder = organizableplayscreens_rootFolder;
     /**
-     * The path of {@link #organizableplayscreens_currentFolder currentFolder}.
-     * <p>
-     * Only used for display. In the form of '{@code folder > child folder}'. Empty in the root folder.
+     * @see com.kevinthegreat.organizableplayscreens.mixin.MultiplayerScreenMixin#organizableplayscreens_pathWidget
      */
+    @SuppressWarnings("JavadocReference")
     @Unique
-    private String organizableplayscreens_currentPath;
+    private TextWidget organizableplayscreens_pathWidget;
 
     public MultiplayerServerListWidgetMixin(MinecraftClient minecraftClient, int i, int j, int k, int l) {
         super(minecraftClient, i, j, k, l);
@@ -97,8 +101,8 @@ public abstract class MultiplayerServerListWidgetMixin extends AlwaysSelectedEnt
     }
 
     @Override
-    public String organizableplayscreens_getCurrentPath() {
-        return organizableplayscreens_currentPath;
+    public void organizableplayscreens_setPathWidget(TextWidget pathWidget) {
+        organizableplayscreens_pathWidget = pathWidget;
     }
 
     /**
@@ -107,7 +111,7 @@ public abstract class MultiplayerServerListWidgetMixin extends AlwaysSelectedEnt
     @Override
     public void organizableplayscreens_setCurrentFolder(@NotNull MultiplayerFolderEntry folderEntry) {
         organizableplayscreens_currentFolder = folderEntry;
-        screen.select(null);
+        setSelected(null);
         updateEntries();
     }
 
@@ -119,7 +123,7 @@ public abstract class MultiplayerServerListWidgetMixin extends AlwaysSelectedEnt
         if (organizableplayscreens_currentFolder != organizableplayscreens_rootFolder) {
             MultiplayerFolderEntry oldCurrentFolder = organizableplayscreens_currentFolder;
             organizableplayscreens_setCurrentFolder(organizableplayscreens_currentFolder.getParent());
-            screen.select(oldCurrentFolder);
+            setSelected(oldCurrentFolder);
             return true;
         }
         return false;
@@ -183,30 +187,30 @@ public abstract class MultiplayerServerListWidgetMixin extends AlwaysSelectedEnt
      */
     @Unique
     private void organizableplayscreens_fromNbt(MultiplayerFolderEntry folder, NbtCompound nbtCompound, List<MultiplayerServerListWidget.ServerEntry> serversSorted) {
-        NbtList nbtList = nbtCompound.getList("entries", 10);
+        NbtList nbtList = nbtCompound.getListOrEmpty("entries");
         folder.getEntries().clear();
         for (int i = 0; i < nbtList.size(); i++) {
-            NbtCompound nbtEntry = nbtList.getCompound(i);
+            NbtCompound nbtEntry = nbtList.getCompoundOrEmpty(i);
             OrganizablePlayScreens.updateEntryNbt(nbtEntry, true);
-            String type = nbtEntry.getString("type");
+            String type = nbtEntry.getString("type", "");
             switch (type) {
                 case "minecraft:server" -> {
-                    if (!nbtEntry.getBoolean("hidden")) {
-                        int index = Collections.binarySearch(serversSorted, ServerEntryInvoker.create((MultiplayerServerListWidget) (Object) this, screen, new ServerInfo(nbtEntry.getString("name"), nbtEntry.getString("ip"), null)), serverEntryComparator);
+                    if (!nbtEntry.getBoolean("hidden", false)) {
+                        int index = Collections.binarySearch(serversSorted, ServerEntryAccessor.create((MultiplayerServerListWidget) (Object) this, screen, new ServerInfo(nbtEntry.getString("name", ""), nbtEntry.getString("ip", ""), null)), serverEntryComparator);
                         if (index >= 0) {
                             folder.getEntries().add(serversSorted.remove(index));
                         }
                     }
                 }
                 case OrganizablePlayScreens.MOD_ID + ":folder" -> {
-                    MultiplayerFolderEntry folderEntry = new MultiplayerFolderEntry(screen, folder, nbtEntry.getString("name"));
-                    if (nbtEntry.getBoolean("current")) {
+                    MultiplayerFolderEntry folderEntry = new MultiplayerFolderEntry(screen, folder, nbtEntry.getString("name", ""));
+                    if (nbtEntry.getBoolean("current", false)) {
                         organizableplayscreens_currentFolder = folderEntry;
                     }
                     organizableplayscreens_fromNbt(folderEntry, nbtEntry, serversSorted);
                     folder.getEntries().add(folderEntry);
                 }
-                default -> folder.getEntries().add(EntryType.get(Identifier.of(type)).multiplayerEntry(screen, folder, nbtEntry.getString("name")));
+                default -> folder.getEntries().add(EntryType.get(Identifier.of(type)).multiplayerEntry(screen, folder, nbtEntry.getString("name", "")));
             }
         }
     }
@@ -254,7 +258,7 @@ public abstract class MultiplayerServerListWidgetMixin extends AlwaysSelectedEnt
         Collections.swap(organizableplayscreens_currentFolder.getEntries(), i, j);
         organizableplayscreens_updateAndSave();
         setSelected(children().get(j));
-        ensureVisible(getSelectedOrNull());
+        scrollTo(getSelectedOrNull());
     }
 
     /**
@@ -266,9 +270,9 @@ public abstract class MultiplayerServerListWidgetMixin extends AlwaysSelectedEnt
             return;
         }
         clearEntries();
-        children().addAll(organizableplayscreens_currentFolder.getEntries());
-        children().add(scanningEntry);
-        children().addAll(lanServers);
+        organizableplayscreens_currentFolder.getEntries().forEach(this::addEntry);
+        addEntry(scanningEntry);
+        lanServers.forEach(this::addEntry);
         if (getSelectedOrNull() == null) {
             setScrollY(0);
         }
@@ -288,15 +292,31 @@ public abstract class MultiplayerServerListWidgetMixin extends AlwaysSelectedEnt
             folder = folder.getParent();
         }
         Collections.reverse(path);
-        organizableplayscreens_currentPath = String.join(" > ", path);
+        organizableplayscreens_pathWidget.setMessage(Text.of(String.join(" > ", path)));
+        ((MultiplayerScreenAccessor) screen).getLayout().refreshPositions(); // Only refresh the layout positions instead of calling MultiplayerScreen#refreshWidgetPositions to avoid activating other mixins to prevent NPEs as this can run before all buttons are initialized.
     }
 
     @Mixin(MultiplayerServerListWidget.ServerEntry.class)
-    public interface ServerEntryInvoker {
+    public interface ServerEntryAccessor {
+        @Accessor
+        WorldIcon getIcon();
+
+        @Accessor
+        byte[] getFavicon();
+
+        @Accessor
+        void setFavicon(byte[] favicon);
+
         @SuppressWarnings("unused")
         @Invoker("<init>")
         static MultiplayerServerListWidget.ServerEntry create(MultiplayerServerListWidget serverListWidget, MultiplayerScreen screen, ServerInfo server) {
             throw new IllegalStateException("Mixin invoker failed to apply");
         }
+
+        @Invoker
+        void invokeUpdate();
+
+        @Invoker
+        boolean invokeUploadFavicon(byte[] favicon);
     }
 }
