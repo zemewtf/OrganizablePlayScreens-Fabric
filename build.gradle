@@ -105,7 +105,7 @@ publishing {
 }
 
 publishMods {
-	file = tasks.named("remapJar", Jar).flatMap { it.archiveFile }
+	file = project(":OrganizablePlayScreens-Fabric").tasks.named("remapJar").flatMap { it.archiveFile }
 	displayName = "Folders! ${mod_version} for ${minecraft_version}"
 	changelog = rootProject.file("CHANGELOG.md").text
 	type = STABLE
