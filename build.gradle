@@ -34,7 +34,7 @@ dependencies {
 
 	implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
     productionRuntimeMods "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modCompileOnly "gg.essential:essential-${project.essential_minecraft_version}-fabric:${project.essential_version}"
+	compileOnly "gg.essential:essential-${project.essential_minecraft_version}-fabric:${project.essential_version}"
 }
 
 fabricApi {
